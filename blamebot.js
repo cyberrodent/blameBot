@@ -19,8 +19,8 @@ var http = require("http"),
     child_process = require("child_process"),
     exec = child_process.exec;
 
-var git_checkout_dir = "/Users/jeff/Projects/xstack";
-var git_command = "git";
+var git_checkout_dir = "/Path/To/Your/Git/checkout";
+var git_command = "/usr/bin/git";
 
 http.createServer(function (req, res) {
 
