@@ -1,6 +1,6 @@
 BlameBot
 ========
-Http Service bot to show a line of git blame.
+Http Service to show git blame for a specified line of code.
 
 Usage:
 ------
