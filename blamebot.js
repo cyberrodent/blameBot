@@ -12,36 +12,36 @@
 // blameBot configuration
 //
 
-// Where is your git repo?
-var git_checkout_dir = "/Path/To/Your/Git/checkout";
+var config = {
 
-// What git command would you like me to use?
-var git_command = "/usr/bin/git";
+    // Where is your git repo?
+    "git_checkout_dir" : "/Volumes/Hideout2/code/Web/",
 
-// What port shall I listen on for http service?
-var http_listen_port = 1776;
+    // What git command would you like me to use?
+    "git_command" : "/usr/bin/git",
 
-// What interface shall I listen on for http service?
-var http_listen_iface = '0.0.0.0';
+    // What git options to use
+    "git_other_options" : " -w --since=2.weeks ",
 
-// What URI should I respond to?
-var uri_match_regexp = /^\/blamebot\/\d+\/.*/;
-//  In this case, the URI "interface" works like this:
-//  Starting slash.
-//  The literal string "blamebot/".
-//  The line number to blame (one or more digits)
-//    followed by a slash.
-//  The rest is the relative path from the repository root to file
-//  you want to see blame on.
-//  Untested on Windows, but you would send in the path as it would
-//  work on your host OS.
+    // What port shall I listen on for http service?
+    "http_listen_port" : 1776,
 
-//
-// This is the end of the blameBot configuration section.
-//
+    // What interface shall I listen on for http service?
+    "http_listen_iface" : '0.0.0.0',
 
-
-var http = require("http"),
+    // What URI should I respond to?
+    "uri_match_regexp" : /^\/blamebot\/([0-9]+)\/(.*)/ 
+    //  In this case, the URI "interface" works like this:
+    //  Starting slash.
+    //  The literal string "blamebot/".
+    //  The line number to blame (one or more digits)
+    //    followed by a slash.
+    //  The rest is the relative path from the repository root to file
+    //  you want to see blame on.
+    //  Untested on Windows, but you would send in the path as it would
+    //  work on your host OS.
+},
+  http = require("http"),
   url = require("url"),
   util = require("util"),
   child_process = require("child_process"),
@@ -57,21 +57,22 @@ http.createServer(function (req, res) {
 
   pathname = url.parse(req.url).pathname;
 
-  if (pathname.match(uri_match_regexp)) {
+  if (pathname.match(config.uri_match_regexp)) {
 
-    parts = pathname.match(/^\/gitblame\/(\d+)\/(.*)/);
+    parts = pathname.match(config.uri_match_regexp);
     linenumber = parts[1];
     filename = parts[2];
 
-    cmd = git_command + " blame -L " + linenumber + "," +
-      linenumber + " " + filename;
+    cmd = config.git_command + " " + " blame " +
+        config.git_other_options + 
+        "-L " + linenumber + "," + linenumber + " " +
+        " -- " + filename;
 
-    child = exec(cmd, {"cwd" : git_checkout_dir} ,
+    child = exec(cmd, {"cwd" : config.git_checkout_dir},
       function (error, stdout, stderr) {
         stdout = stdout.replace(/\n/, "");
 
-        var result = '{"stdout":"' + stdout + '",' +
-          '"stderr":"' + stderr + '"}';
+        var result = '{"stdout":"' + stdout + '",' + '"stderr":"' + stderr + '"}';
 
         res.writeHead(200, {'Content-Type': "text/plain"});
         res.end(result + '\n');
@@ -80,6 +81,5 @@ http.createServer(function (req, res) {
     res.writeHead(404, {'Content-Type': "text/plain"});
     res.end('\n');
   }
-}).listen(http_listen_port, http_listen_iface);
+}).listen(config.http_listen_port, config.http_listen_iface);
 
-// vim: set tabstop=2 softtabstop=2 shiftwidth=2 expandtab
